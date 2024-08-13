@@ -1,0 +1,61 @@
+<html lang="en">
+
+<head>
+  <title>Crunchyroll - Fullscreen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- General styles -->
+  <link rel="stylesheet" href="/styles/index.css" type="text/css">
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/styles/font.css" type="text/css">
+</head>
+
+<body>
+
+  <!-- Toggle - Hide header [hide-header] -->
+  <label for="hide-header" title="Oculta cabecera" class="toggle">
+
+    <div class="toggle-component">
+      <input id="hide-header" class="toggle-input" type="checkbox" role="switch" name="hide-header" aria-labelledby="hide-header-label"/>
+      <span class="toggle-switch"></span>
+    </div>
+
+    <span id="hide-header-label" class="toggle-text">
+      Oculta cabecera
+    </span>
+
+    <div class="toggle-description">
+      Oculta la cabecera del sitio para tener mas altura para el reproductor de video
+    </div>
+
+  </label>
+
+  <!-- Toggle - Expand video player [expand-video-player] -->
+  <label for="expand-video-player" title="Oculta cabecera" class="toggle">
+
+    <div class="toggle-component">
+      <input id="expand-video-player" class="toggle-input" type="checkbox" role="switch" name="expand-video-player" aria-labelledby="expand-video-player-label"/>
+      <span class="toggle-switch"></span>
+    </div>
+
+    <span id="expand-video-player-label" class="toggle-text">
+      Expandir reproductor
+    </span>
+
+    <div class="toggle-description">
+      Aumenta el tamanio maximo del reproductor de video para tener mas pantalla
+    </div>
+
+  </label>
+
+</body>
+<script type="module" src="/scripts/services.js"></script>
+<script type="module" src="/scripts/index.js"></script>
+
+</html>

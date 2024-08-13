@@ -1,0 +1,104 @@
+:root {
+    --background:       #23252b;
+    --text:             #fff;
+    --primary:          #ff640a;
+    --toggle-active:    #2abdbb;
+    --toggle-inactive:  #192e38;
+
+    --transition-duration-timing-to:            150ms       ease-out;
+    --transition-duration-timing-from:          150ms       ease-in;
+    --transition-duration-timing-delay-from:    0s 150ms    ease-in;
+}
+
+body {
+    background-color: var(--background);
+    min-width: 20rem;
+    font-family: "Lato", sans-serif;
+    font-size: 12;
+
+    display: flex;
+    flex-direction: column;
+}
+
+/* Toggle */
+ 
+.toggle {
+    color: var(--text);
+    margin: 1em;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 1em;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.toggle-component {
+    --_switch-height: 24px;
+    --_switch-width: 48px;
+
+    position: relative;
+    margin-right: 0.5em;
+    height: var(--_switch-height);
+    width: var(--_switch-width);
+
+    /* Hide default HTML checkbox but preserve accessibility. */
+    & input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+}
+
+.toggle-switch {
+    --outline-width: 1px;
+
+    position: absolute;
+    inset: 0;
+
+    background-color: var(--toggle-inactive);
+    border-radius: 9999px;
+    outline: 1px solid whitesmoke;
+    cursor: pointer;
+    transition: background-color var(--transition-duration-timing-from);
+
+    &::before {
+        --_ratio: 80%;
+        --_offset: 2px;
+
+        content: "";
+
+        position: absolute;
+        top: 50%;
+        left: var(--_offset);
+        right: unset;
+        translate: 0 -50%;
+
+        height: var(--_ratio);
+        aspect-ratio: 1 / 1;
+
+        background-color: rgba(245 245 245 / 0.85);
+        border-radius: 50%;
+
+        transition: translate var(--transition-duration-timing-from);
+    }
+    .toggle-component input:checked + & {
+        background-color: var(--toggle-active);
+        filter: brightness(130%);
+        transition: background-color var(--transition-duration-timing-to);
+    }
+    .toggle-component input:checked + &::before {
+        left: 0;
+        translate: calc(calc(var(--_switch-width) - 100%) - var(--_offset)) -50%;
+        transition: translate var(--transition-duration-timing-to);
+    }
+}
+
+.toggle-text {
+    font-size: 14;
+    margin-right: 1em;
+}
+
+.toggle-description {
+    font-size: 10
+}
