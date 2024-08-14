@@ -1,26 +1,25 @@
-import { storage, actions } from "./services.js";
+import { storage, actions, translation } from "./services.js";
+import { search } from "./query.js";
 
-const search = {
-    cache: {},
+// Load values
+const state = await storage.loadChanges();
+const translations = await translation.get(state);
 
-    getToggles() {
-        if (this.cache.toggles)
-            return this.cache.toggles;
+// Apply language for each element
+translation.apply(search.getElementWithTranslations(), translations);
 
-        this.cache.toggles = Array.from(document.querySelectorAll('.toggle'))
-            .map(toggle => toggle.getElementsByTagName('input')[0])
-            .filter(toggle => !!toggle)
-            .map(toggle => {
-                const { name } = toggle;
-                return { name, element: toggle };
-            });
+// Load element to use
+const
+    toggles = search.getToggles(),
+    selectors = search.getSelectors();
 
-        return this.cache.toggles;
-    }
-}
+// Update visual state and add listeners to each element
+toggles.forEach(({ name, element }) => {
 
-// Set events for the components
-search.getToggles().forEach(({ name, element }) => {
+    // Visual update
+    element.checked = state[name];
+
+    // Listener
     element.addEventListener('change', (event) => {
         const
             { checked } = event.target,
@@ -29,15 +28,24 @@ search.getToggles().forEach(({ name, element }) => {
         if (action)
             action(checked, event.target)
                 .then(() => storage.saveChanges(name, checked))
-                .catch(() => element.checked = false)
+                .catch(() => element.checked = state[name])
     })
 });
 
-//  Update component visual state using the last saved state
-storage.loadChanges().then(state => {
-    const toggles = search.getToggles();
-    Object.keys(state).forEach(key => {
-        const { element } = toggles.find(toggle => toggle.name === key);
-        element.checked = state[key];
-    });
+selectors.forEach(({ name, element }) => {
+
+    // Visual update
+    element.value = state[name];
+
+    // Listener
+    element.addEventListener('change', (event) => {
+        const
+            { value } = event.target,
+            action = actions[name];
+
+        if (action)
+            action(value, event.target)
+                .then(() => storage.saveChanges(name, value))
+                .catch(() => element.value = state[name])
+    })
 });

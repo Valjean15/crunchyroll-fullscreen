@@ -18,43 +18,97 @@
 
 <body>
 
-  <!-- Toggle - Hide header [hide-header] -->
-  <label for="hide-header" title="Oculta cabecera" class="toggle">
+  <fieldset>
 
-    <div class="toggle-component">
-      <input id="hide-header" class="toggle-input" type="checkbox" role="switch" name="hide-header" aria-labelledby="hide-header-label"/>
-      <span class="toggle-switch"></span>
-    </div>
+    <legend>LNG_OPTIONS</legend>
 
-    <span id="hide-header-label" class="toggle-text">
-      Oculta cabecera
-    </span>
+    <!-- Toggle - Hide header [hide-header] -->
+    <label for="hide-header" title="LNG_HIDE_HEADER_TITLE" class="toggle">
 
-    <div class="toggle-description">
-      Oculta la cabecera del sitio para tener mas altura para el reproductor de video
-    </div>
+      <div class="toggle-component">
+        <input id="hide-header" class="toggle-input" type="checkbox" role="switch" name="hide-header"
+          aria-labelledby="hide-header-label" />
+        <span class="toggle-switch"></span>
+      </div>
 
-  </label>
+      <span id="hide-header-label" class="toggle-text">
+        LNG_HIDE_HEADER_TITLE
+      </span>
 
-  <!-- Toggle - Expand video player [expand-video-player] -->
-  <label for="expand-video-player" title="Oculta cabecera" class="toggle">
+      <div class="toggle-description">
+        LNG_HIDE_HEADER_DESC
+      </div>
 
-    <div class="toggle-component">
-      <input id="expand-video-player" class="toggle-input" type="checkbox" role="switch" name="expand-video-player" aria-labelledby="expand-video-player-label"/>
-      <span class="toggle-switch"></span>
-    </div>
+    </label>
 
-    <span id="expand-video-player-label" class="toggle-text">
-      Expandir reproductor
-    </span>
+    <!-- Toggle - Expand video player [expand-video-player] -->
+    <label for="expand-video-player" title="LNG_EXPN_VID_PLAYER_TITLE" class="toggle">
 
-    <div class="toggle-description">
-      Aumenta el tamanio maximo del reproductor de video para tener mas pantalla
-    </div>
+      <div class="toggle-component">
+        <input id="expand-video-player" class="toggle-input" type="checkbox" role="switch" name="expand-video-player"
+          aria-labelledby="expand-video-player-label" />
+        <span class="toggle-switch"></span>
+      </div>
 
-  </label>
+      <span id="expand-video-player-label" class="toggle-text">
+        LNG_EXPN_VID_PLAYER_TITLE
+      </span>
+
+      <div class="toggle-description">
+        LNG_EXPN_VID_PLAYER_DESC
+      </div>
+
+    </label>
+
+    <!-- Toggle - Auto skip intro/credits [auto-skip-button] -->
+    <!-- <label for="auto-skip-button" title="LNG_AUTO_SKIP_BUTTON_TITLE" class="toggle">
+
+      <div class="toggle-component">
+        <input id="auto-skip-button" class="toggle-input" type="checkbox" role="switch" name="auto-skip-button"
+          aria-labelledby="auto-skip-button-label" />
+        <span class="toggle-switch"></span>
+      </div>
+
+      <span id="auto-skip-button-label" class="toggle-text">
+        LNG_AUTO_SKIP_BUTTON_TITLE
+      </span>
+
+      <div class="toggle-description">
+        LNG_AUTO_SKIP_BUTTON_DESC
+      </div>
+
+    </label> -->
+
+  </fieldset>
+
+  <fieldset>
+    <legend>LNG_PREFERENCES</legend>
+
+    <!-- Select - Language extension preference [pref-language] -->
+    <label for="pref-language" title="LNG_PREF_LANGUAGE_TITLE" class="select">
+
+      <div class="select-component">
+        <select id="pref-language" class="select-input" name="pref-language">
+          <option value="en">LNG_PREF_LANGUAGE_EN</option>
+          <option value="es">LNG_PREF_LANGUAGE_ES</option>
+        </select>
+      </div>
+
+      <span id="auto-skip-button-label" class="select-text">
+        LNG_PREF_LANGUAGE_TITLE
+      </span>
+
+      <div class="select-description">
+        LNG_PREF_LANGUAGE_DESC
+      </div>
+
+    </label>
+
+  </fieldset>
 
 </body>
+<script type="module" src="/scripts/logger.js"></script>
+<script type="module" src="/scripts/query.js"></script>
 <script type="module" src="/scripts/services.js"></script>
 <script type="module" src="/scripts/index.js"></script>
 
