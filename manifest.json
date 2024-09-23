@@ -3,6 +3,9 @@
     "description": "Crunchyroll video editor addons",
     "version": "0.1",
     "manifest_version": 3,
+    "icons": {
+        "128": "icon.png"
+    },
     "action": {
         "default_popup": "pages/index.html"
     },
