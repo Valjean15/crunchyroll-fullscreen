@@ -1,10 +1,22 @@
 :root {
+    /* Colors */
     --background:       #23252b;
     --text:             #fff;
+    --text-secondary:   #949e95;
     --primary:          #ff640a;
-    --toggle-active:    #2abdbb;
-    --toggle-inactive:  #192e38;
+    --secondary:        #4a4e58;
+    --color-focus:      #141519;
+    --color-active:     #2abdbb;
+    --color-inactive:   #192e38;
 
+    /* Fonts */
+    --font-size-1:          1.5rem;
+    --font-size-2:          1.25rem;
+    --font-size-3:          1rem;
+    --font-size-4:          .875rem;
+    --font-size-5:          .75rem;
+
+    /* Animmations */
     --transition-duration-timing-to:            150ms       ease-out;
     --transition-duration-timing-from:          150ms       ease-in;
     --transition-duration-timing-delay-from:    0s 150ms    ease-in;
@@ -14,33 +26,43 @@ body {
     background-color: var(--background);
     min-width: 20rem;
     font-family: "Lato", sans-serif;
-    font-size: 12;
+    font-size: var(--font-size-2);
+    margin: 2rem;
 
     display: flex;
     flex-direction: column;
 }
 
-/* Fieldset */
-fieldset > legend {
-    color: var(--text)
+/*#region Fieldset */
+
+fieldset {
+    border: none;
+    padding: 0 0 2rem 0
 }
 
-/* Toggle */
+fieldset > legend {
+    color: var(--text);
+    padding: 0 0 1rem 0
+}
+
+/*#endregion Fieldset */
+
+/*#region Toggle */
  
 .toggle {
     color: var(--text);
-    margin: 1em;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    row-gap: 1em;
+    row-gap: 0.5em;
     cursor: pointer;
     border-radius: 8px;
+    padding: 0 0 0.5rem 0
 }
 
 .toggle-component {
-    --_switch-height: 24px;
-    --_switch-width: 48px;
+    --_switch-height: 12px;
+    --_switch-width: 24px;
 
     position: relative;
     margin-right: 0.5em;
@@ -61,34 +83,37 @@ fieldset > legend {
     position: absolute;
     inset: 0;
 
-    background-color: var(--toggle-inactive);
+    background-color: var(--color-inactive);
     border-radius: 9999px;
-    outline: 1px solid whitesmoke;
+    outline: 1px solid var(--text-secondary);
     cursor: pointer;
     transition: background-color var(--transition-duration-timing-from);
 
+    /* Toggle point */
+
     &::before {
-        --_ratio: 80%;
-        --_offset: 2px;
+        --_ratio: 50%;
+        --_offset: 4px;
 
         content: "";
 
-        position: absolute;
+        position: absolute; 
         top: 50%;
         left: var(--_offset);
         right: unset;
         translate: 0 -50%;
-
+        outline: 1px solid var(--text-secondary);
+        background-color: var(--text-secondary);
         height: var(--_ratio);
         aspect-ratio: 1 / 1;
-
-        background-color: rgba(245 245 245 / 0.85);
         border-radius: 50%;
-
         transition: translate var(--transition-duration-timing-from);
     }
+
+    /* Checked */
+
     .toggle-component input:checked + & {
-        background-color: var(--toggle-active);
+        outline: 1px solid var(--color-active);
         filter: brightness(130%);
         transition: background-color var(--transition-duration-timing-to);
     }
@@ -96,66 +121,98 @@ fieldset > legend {
         left: 0;
         translate: calc(calc(var(--_switch-width) - 100%) - var(--_offset)) -50%;
         transition: translate var(--transition-duration-timing-to);
+        background-color: var(--color-active);
+        outline: 1px solid var(--color-active);
+    }
+
+    /* Hover */
+
+    .toggle-component input:hover + & {
+        outline: 1px solid var(--text);
+    }
+
+    .toggle-component input:hover + &::before {
+        outline: 1px solid var(--text);
+        background-color: var(--text);
     }
 }
 
 .toggle-text {
-    font-size: 14;
+    font-size: var(--font-size-3);
     margin-right: 1em;
-}
 
-.toggle-description {
-    font-size: 10
-}
-
-/* Selector */
-
-.select {
-    color: var(--text);
-    margin: 1em;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    row-gap: 1em;
-    cursor: pointer;
-    border-radius: 8px;
-}
-
-.select-component {
-    --_switch-height: 24px;
-    --_switch-width: 48px;
-
-    position: relative;
-    margin-right: 0.5em;
-    height: var(--_switch-height);
-    width: var(--_switch-width);
-
-    /* Hide default HTML checkbox but preserve accessibility. */
-    & input {
-        opacity: 0;
-        width: 0;
-        height: 0;
+    &:hover {
+        filter: brightness(130%);
     }
 }
 
-.select-switch {
-    --outline-width: 1px;
+.toggle-description {
+    font-size: var(--font-size-4);
+    color: var(--text-secondary);
+}
 
-    position: absolute;
-    inset: 0;
+/*#endregion Toggle */
 
-    background-color: var(--toggle-inactive);
-    border-radius: 9999px;
-    outline: 1px solid whitesmoke;
+/*#region Selector */
+
+.select {
+    position: relative;
+}
+  
+.select-input {
+    color: var(--text);
+    position: relative;
+    font-family: inherit;
+    background-color: transparent;
+    width: 100%;
+    padding: 1rem 0 0 0;
+    font-size: var(--font-size-3);
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--secondary);
     cursor: pointer;
-    transition: background-color var(--transition-duration-timing-from);
+
+    & option {
+        color: var(--text-secondary);
+        background-color: var(--background);
+    }
+
+    /* Hover */
+
+    &:hover {
+        color: var(--color-active)
+    }
+
+    /* Focus */
+
+    &:focus-within {
+        color: var(--color-active)
+    }
 }
 
 .select-text {
-    font-size: 14;
-    margin-right: 1em;
+    color: var(--text-secondary);
+    font-size: var(--font-size-5);
+    font-weight: normal;
+    position: absolute;
+    pointer-events: none;
+    transition: var(--transition-duration-timing-from);
 }
 
 .select-description {
-    font-size: 10
+    font-size: var(--font-size-4);
+    color: var(--text-secondary);
 }
+
+/* Remove default arrow */
+.select .select-input {
+	appearance: none;
+	-webkit-appearance:none
+}
+
+/* Remove focus */
+.select-input:focus {
+    outline: none;
+}
+  
+/*#endregion Selector */

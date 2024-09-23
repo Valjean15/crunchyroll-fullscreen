@@ -3,7 +3,7 @@ import { search } from './query.js'
 
 // #region Constants
 
-const ALLOWED_SITE = 'www.crunchyroll.com';
+const ALLOWED_SITE = 'https://www.crunchyroll.com';
 const DEFAULT_LANGUAGE = 'en';
 
 // Keys
@@ -21,7 +21,6 @@ const ALL_VALUES = [...BOOLEAN_VALUES, ...STRING_VALUES]
 
 export const remote = {
     isAllowed(url) {
-        logger.print('[isAllowed] Site url is not allowed to interact with this extension', url);
         return url && url.includes(ALLOWED_SITE);
     },
     async execute(args, action) {
@@ -32,7 +31,7 @@ export const remote = {
 
             logger.print('[execute] Tab detected', { id, url });
 
-            if (!url || !url.includes(ALLOWED_SITE)) {
+            if (!this.isAllowed(url)) {
                 logger.print('[execute] Invalid tab due to url');
                 return Promise.reject('Page not allowed for this extension');
             }
@@ -50,6 +49,45 @@ export const remote = {
 
         } catch (ex) {
             logger.print('[execute] Failure on executing remote script on tab', ex);
+            return Promise.reject('Page not allowed for this extension');
+        }
+    },
+    async executeIntoVideoPlayer(args, action) {
+        try {
+            const
+                [tab] = await chrome.tabs.query({ active: true, currentWindow: true }),
+                { id, url } = tab;
+
+            if (!this.isAllowed(url)) {
+                logger.print('[executeIntoFrame] Invalid tab due to url');
+                return Promise.reject('Page not allowed for this extension');
+            }
+
+            logger.print('[executeIntoFrame] Tab detected', { id, url });
+
+            const 
+                frames = await chrome.webNavigation.getAllFrames({ tabId: id }),
+                player = (frames || []).filter(frame => frame.frameType === 'sub_frame' && frame.url.includes('static')).at(0)
+                ;
+
+            if (!player){
+                logger.print('[executeIntoFrame] Cannot get the iframe of the video player');
+                return Promise.reject('Video player not found');
+            }
+
+            logger.print('[executeIntoFrame] Video player detected', { id: player.frameId, url: player.url });
+
+            chrome.scripting.executeScript({
+                target: { tabId: id, frameIds: [player.frameId] },
+                func: action,
+                args: args
+            });
+
+            logger.print('[executeIntoFrame] Success on executing remote script on tab');
+            return Promise.resolve();
+
+        } catch (ex) {
+            logger.print('[executeIntoFrame] Failure on executing remote script on tab', ex);
             return Promise.reject('Page not allowed for this extension');
         }
     }
@@ -106,18 +144,18 @@ export const actions = {
         }
     }),
 
-    [AUTO_SKIP_BUTTON]: (checked) => remote.execute([checked], checked => {
-
-        // TODO: Finish this
+    [AUTO_SKIP_BUTTON]: (checked) => remote.executeIntoVideoPlayer([checked], checked => {
 
         clearInterval(window.__auto_skip_button);
         window.__auto_skip_button = null;
 
         if (checked)
             window.__auto_skip_button = setInterval(() => {
-                const button = Array.from(document.getElementsByClassName('css-1dbjc4n')).filter(b => b.attributes['data-testid'] && b.attributes['data-testid'].value == 'skipButton')[0];
-                if (button && button.children && button.children[0] && button.children[0].click)
-                    button.children[0].click();
+
+                const skip = document.querySelector("[data-testid='skipIntroText']");
+                if (skip && skip.click)
+                    skip.click();
+    
             }, 1000);
     }),
 
