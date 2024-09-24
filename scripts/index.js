@@ -27,8 +27,7 @@ toggles.forEach(({ name, element }) => {
 
         if (action)
             action(checked, event.target)
-                .then(() => storage.saveChanges(name, checked))
-                .catch(() => element.checked = state[name])
+                .finally(() => storage.saveChanges(name, checked))
     })
 });
 
@@ -45,7 +44,6 @@ selectors.forEach(({ name, element }) => {
 
         if (action)
             action(value, event.target)
-                .then(() => storage.saveChanges(name, value))
-                .catch(() => element.value = state[name])
+                .finally(() => storage.saveChanges(name, value))
     })
 });

@@ -150,11 +150,15 @@ export const actions = {
         window.__auto_skip_button = null;
 
         if (checked)
-            window.__auto_skip_button = setInterval(() => {
+            window.__auto_skip_button = setInterval(async () => {
 
                 const skip = document.querySelector("[data-testid='skipIntroText']");
-                if (skip && skip.click)
+                if (skip && skip.click){
                     skip.click();
+                    
+                    // Wait at least a second before try again
+                    await (() => new Promise(r => setTimeout(r, 1000)))();
+                }
     
             }, 1000);
     }),
