@@ -133,14 +133,31 @@ export const actions = {
 
         const videoPlayer = document.getElementsByClassName('video-player-wrapper')[0];
         if (videoPlayer) {
-
-            const { style } = videoPlayer;
-
-            if (checked && style.height !== '100vh')
-                style.height = '100vh';
-
-            if (!checked && style.height !== '')
-                style.height = '';
+    
+            // Function to adjust the video player's height dynamically
+            const adjustHeight = () => {
+                const viewportHeight = window.innerHeight;
+                const offsetTop = videoPlayer.getBoundingClientRect().top;
+                const availableHeight = viewportHeight - offsetTop;
+                videoPlayer.style.height = `${availableHeight}px`;
+            };
+    
+            if (checked) {
+                // Store the function reference to remove it later
+                window.__adjustVideoPlayerHeight = adjustHeight;
+                // Add event listener to adjust height on window resize
+                window.addEventListener('resize', window.__adjustVideoPlayerHeight);
+                // Initial adjustment
+                window.__adjustVideoPlayerHeight();
+            } else {
+                // Remove the event listener when unchecked
+                if (window.__adjustVideoPlayerHeight) {
+                    window.removeEventListener('resize', window.__adjustVideoPlayerHeight);
+                    delete window.__adjustVideoPlayerHeight;
+                }
+                // Reset the height
+                videoPlayer.style.height = '';
+            }
         }
     }),
 
