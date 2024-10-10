@@ -15,6 +15,7 @@
     --font-size-3:          1rem;
     --font-size-4:          .875rem;
     --font-size-5:          .75rem;
+    --font-size-6:          .60rem;
 
     /* Animmations */
     --transition-duration-timing-to:            150ms       ease-out;
@@ -216,3 +217,15 @@ fieldset > legend {
 }
   
 /*#endregion Selector */
+
+/*#region About */
+
+span.about-section {
+
+    display: flex;
+    justify-content: flex-end;
+    color: var(--text-secondary);
+    font-size: var(--font-size-6);
+}
+
+/*#endregion About */

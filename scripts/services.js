@@ -19,6 +19,31 @@ const ALL_VALUES = [...BOOLEAN_VALUES, ...STRING_VALUES]
 
 // #endregion
 
+// #region Private fields
+
+// Represent the current state of the application
+const STATE_CACHE = {
+
+    __cache: {},
+
+    set(value) {
+        logger.print('[STATE_CACHE] Setting => ', value);
+        this.__cache = value;
+    },
+
+    get() {
+        logger.print('[STATE_CACHE] Getting => ', this.__cache);
+        return this.__cache;
+    },
+
+    patch(key, value) {
+        logger.print('[STATE_CACHE] Patching => ', { key, value });
+        this.__cache[key] = value;
+    }
+}
+
+// #endregion
+
 export const remote = {
     isAllowed(url) {
         return url && url.includes(ALLOWED_SITE);
@@ -96,6 +121,7 @@ export const remote = {
 export const storage = {
     saveChanges(key, value) {
         logger.print('[saveChanges] Saving => ', { key, value });
+        STATE_CACHE.patch(key, value);
         chrome.storage.local.set({ [key]: value });
     },
     loadChanges() {
@@ -110,7 +136,9 @@ export const storage = {
                 if (!state[PREFERENCE_LANGUAGE]) state[PREFERENCE_LANGUAGE] = DEFAULT_LANGUAGE;
 
                 logger.print('[loadChanges] Loaded', state);
-                return state;
+                STATE_CACHE.set(state);
+
+                return STATE_CACHE.get();
             });
     }
 }
@@ -118,48 +146,9 @@ export const storage = {
 export const actions = {
 
     // Toggles 
-    [HIDE_HEADER]: (checked) => remote.execute([checked], checked => {
+    [HIDE_HEADER]: (checked) => adjustScreen(checked, STATE_CACHE.get()[EXPAND_VIDEO_PLAYER]),
 
-        const { style } = document.getElementsByClassName('erc-large-header')[0];
-
-        if (checked && style.display !== 'none')
-            style.display = 'none';
-
-        if (!checked && style.display !== '')
-            style.display = '';
-    }),
-
-    [EXPAND_VIDEO_PLAYER]: (checked) => remote.execute([checked], checked => {
-
-        const videoPlayer = document.getElementsByClassName('video-player-wrapper')[0];
-        if (videoPlayer) {
-    
-            // Function to adjust the video player's height dynamically
-            const adjustHeight = () => {
-                const viewportHeight = window.innerHeight;
-                const offsetTop = videoPlayer.getBoundingClientRect().top;
-                const availableHeight = viewportHeight - offsetTop;
-                videoPlayer.style.height = `${availableHeight}px`;
-            };
-    
-            if (checked) {
-                // Store the function reference to remove it later
-                window.__adjustVideoPlayerHeight = adjustHeight;
-                // Add event listener to adjust height on window resize
-                window.addEventListener('resize', window.__adjustVideoPlayerHeight);
-                // Initial adjustment
-                window.__adjustVideoPlayerHeight();
-            } else {
-                // Remove the event listener when unchecked
-                if (window.__adjustVideoPlayerHeight) {
-                    window.removeEventListener('resize', window.__adjustVideoPlayerHeight);
-                    delete window.__adjustVideoPlayerHeight;
-                }
-                // Reset the height
-                videoPlayer.style.height = '';
-            }
-        }
-    }),
+    [EXPAND_VIDEO_PLAYER]: (checked) => adjustScreen(STATE_CACHE.get()[HIDE_HEADER], checked),
 
     [AUTO_SKIP_BUTTON]: (checked) => remote.executeIntoVideoPlayer([checked], checked => {
 
@@ -215,14 +204,79 @@ export const translation = {
     },
 
     apply(elements, translations) {
-        elements.forEach(({ key, element }) => {
-            const value = translations[key];
-            if (!value) {
-                logger.print('[translation] Value not found => ', key);
-                return;
-            }
+        elements.forEach(({ element, content, title }) => {
 
-            element.textContent = value;
+            const get = (key) => {
+                const value = translations[key];
+                if (!value) {
+                    logger.print('[translation] Value not found => ', key);
+                    return key;
+                }
+                return value;
+            }
+            
+            if (content.isValid)
+                element.textContent = get(content.key);
+
+            if (title.isValid)
+                element.title = get(title.key);
         });
     }
 }
+
+// #region Private Methods
+
+const adjustScreen = async (hideHeader, expandVideoPlayer) => {
+    
+    // Hide/Show header if checked
+    const hideHeaderPromise = remote.execute([hideHeader], checked => {
+
+        const { style } = document.getElementsByClassName('erc-large-header')[0];
+
+        if (checked && style.display !== 'none')
+            style.display = 'none';
+
+        if (!checked && style.display !== '')
+            style.display = '';
+    })
+
+    // Adjust the video player, if the current value is checked
+    const expandVideoPlayerPromise = remote.execute([expandVideoPlayer], checked => {
+
+        const videoPlayer = document.getElementsByClassName('video-player-wrapper')[0];
+        if (videoPlayer) {
+    
+            // Function to adjust the video player's height dynamically
+            const adjustHeight = () => {
+                const viewportHeight = window.innerHeight;
+                const offsetTop = videoPlayer.getBoundingClientRect().top;
+                const availableHeight = viewportHeight - offsetTop;
+                videoPlayer.style.height = `${availableHeight}px`;
+            };
+    
+            if (checked) {
+                // Store the function reference to remove it later
+                window.__adjustVideoPlayerHeight = adjustHeight;
+                // Add event listener to adjust height on window resize
+                window.addEventListener('resize', window.__adjustVideoPlayerHeight);
+                // Initial adjustment
+                window.__adjustVideoPlayerHeight();
+            } else {
+                // Remove the event listener when unchecked
+                if (window.__adjustVideoPlayerHeight) {
+                    window.removeEventListener('resize', window.__adjustVideoPlayerHeight);
+                    delete window.__adjustVideoPlayerHeight;
+                }
+                // Reset the height
+                videoPlayer.style.height = '';
+            }
+        }
+    })
+
+    const noError = (await Promise.allSettled([hideHeaderPromise, expandVideoPlayerPromise]))
+        .every(result => result.status === 'fulfilled');
+
+    return noError ? Promise.resolve() : Promise.reject();
+}
+
+// #endregion

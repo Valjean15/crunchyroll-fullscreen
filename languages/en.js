@@ -15,5 +15,7 @@ export const translation =
     "LNG_PREF_LANGUAGE_TITLE": "Language",
     "LNG_PREF_LANGUAGE_DESC": "Preferred language to use in the extension",
     "LNG_PREF_LANGUAGE_EN": "English",
-    "LNG_PREF_LANGUAGE_ES": "Spanish"
+    "LNG_PREF_LANGUAGE_ES": "Spanish",
+
+    "LNG_CURRENT_VERSION": "build @ 2024.10.10"
 }

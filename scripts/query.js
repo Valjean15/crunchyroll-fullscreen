@@ -59,14 +59,22 @@ export const search = {
             return this.cache.translate;
         }
 
-        this.cache.translate = Array.from(document.querySelectorAll("*")).filter(node => {
-            let text = node.textContent.trim();
-            return text.startsWith('LNG_') && !text.includes('\n');
-        })
-        .map(node => {
-            let key = node.textContent.trim();
-            return { key, element: node };
-        });
+        const isValidToTranslate = (text) => text.startsWith('LNG_') && !text.includes('\n');
+
+        this.cache.translate = Array.from(document.querySelectorAll("*"))
+            .map(node => {
+                let 
+                    text = node.textContent?.trim() || '',
+                    title = node.title?.trim() || '';
+
+                return { 
+                    element: node,
+                    content: { key: text, isValid: isValidToTranslate(text) },
+                    title: { key: title, isValid: isValidToTranslate(title) }
+                }
+            })        
+            .filter(item => item.content.isValid || item.title.isValid)
+        ;
 
         logger.print('[getElementWithTranslations] Elements stored into cache', this.cache.translate);
         return this.cache.translate;
