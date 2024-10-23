@@ -11,6 +11,7 @@ export const translation =
 
     "LNG_AUTO_SKIP_BUTTON_TITLE": "Omitir introduccion/creditos",
     "LNG_AUTO_SKIP_BUTTON_DESC": "Realiza clic automatico en los botones de omitir introduccion/creditos",
+    "LNG_AUTO_SKIP_BUTTON_TOOLTIP": "Nota: Esto puede no funcionar correctamente para algunos animes mas antiguos.",
 
     "LNG_PREF_LANGUAGE_TITLE": "Idioma",
     "LNG_PREF_LANGUAGE_DESC": "Idioma de preferencia a usar en la extension",

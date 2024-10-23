@@ -11,6 +11,7 @@ export const translation =
 
     "LNG_AUTO_SKIP_BUTTON_TITLE": "Auto-skip intro/credits",
     "LNG_AUTO_SKIP_BUTTON_DESC": "Automatically clicks the skip intro/credits buttons",
+    "LNG_AUTO_SKIP_BUTTON_TOOLTIP": "Note: This may not work correctly for some older animes.",
 
     "LNG_PREF_LANGUAGE_TITLE": "Language",
     "LNG_PREF_LANGUAGE_DESC": "Preferred language to use in the extension",
