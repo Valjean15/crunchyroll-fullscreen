@@ -231,7 +231,7 @@ const adjustScreen = async (hideHeader, expandVideoPlayer) => {
     // Hide/Show header if checked
     const hideHeaderPromise = remote.execute([hideHeader], checked => {
 
-        const { style } = document.getElementsByClassName('erc-large-header')[0];
+        const { style } = document.getElementsByClassName('erc-large-header')[0].parentElement;
 
         if (checked && style.display !== 'none')
             style.display = 'none';
