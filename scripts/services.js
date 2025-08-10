@@ -11,9 +11,10 @@ const HIDE_HEADER = 'hide-header';
 const EXPAND_VIDEO_PLAYER = 'expand-video-player';
 const AUTO_SKIP_BUTTON = 'auto-skip-button';
 const PREFERENCE_LANGUAGE = 'pref-language';
+const ENABLE_PIP = 'enable-pip';
 
 // Clasify values by type
-export const BOOLEAN_VALUES = [HIDE_HEADER, EXPAND_VIDEO_PLAYER, AUTO_SKIP_BUTTON];
+export const BOOLEAN_VALUES = [HIDE_HEADER, EXPAND_VIDEO_PLAYER, AUTO_SKIP_BUTTON, ENABLE_PIP];
 const STRING_VALUES = [PREFERENCE_LANGUAGE];
 const ALL_VALUES = [...BOOLEAN_VALUES, ...STRING_VALUES]
 
@@ -90,12 +91,12 @@ export const remote = {
 
             logger.print('[executeIntoFrame] Tab detected', { id, url });
 
-            const 
+            const
                 frames = await chrome.webNavigation.getAllFrames({ tabId: id }),
                 player = (frames || []).filter(frame => frame.frameType === 'sub_frame' && frame.url.includes('static')).at(0)
                 ;
 
-            if (!player){
+            if (!player) {
                 logger.print('[executeIntoFrame] Cannot get the iframe of the video player');
                 return Promise.reject('Video player not found');
             }
@@ -159,13 +160,13 @@ export const actions = {
             window.__auto_skip_button = setInterval(async () => {
 
                 const skip = document.querySelector("[data-testid='skipIntroText']");
-                if (skip && skip.click){
+                if (skip && skip.click) {
                     skip.click();
-                    
+
                     // Wait at least a second before try again
                     await (() => new Promise(r => setTimeout(r, 1000)))();
                 }
-    
+
             }, 1000);
     }),
 
@@ -183,7 +184,25 @@ export const actions = {
         translation.apply(search.getElementWithTranslations(), translations);
 
         return Promise.resolve();
-    }
+    },
+
+    [ENABLE_PIP]: (checked) => remote.executeIntoVideoPlayer([checked], async checked => {
+        const video = document.getElementsByTagName('video')[0];
+        if (!video) return;
+
+        try {
+            video.disablePictureInPicture = !checked;
+
+            if (checked) {
+                await video.requestPictureInPicture();
+            } else {
+                await document.exitPictureInPicture();
+            }
+        }
+        catch (error) {
+            console.warn('[ENABLE_PIP] Error occurred while toggling Picture-in-Picture mode', error);
+        }
+    })
 }
 
 export const translation = {
@@ -214,7 +233,7 @@ export const translation = {
                 }
                 return value;
             }
-            
+
             if (content.isValid)
                 element.textContent = get(content.key);
 
@@ -227,7 +246,7 @@ export const translation = {
 // #region Private Methods
 
 const adjustScreen = async (hideHeader, expandVideoPlayer) => {
-    
+
     // Hide/Show header if checked
     const hideHeaderPromise = remote.execute([hideHeader], checked => {
 
@@ -245,7 +264,7 @@ const adjustScreen = async (hideHeader, expandVideoPlayer) => {
 
         const videoPlayer = document.getElementsByClassName('video-player-wrapper')[0];
         if (videoPlayer) {
-    
+
             // Function to adjust the video player's height dynamically
             const adjustHeight = () => {
                 const viewportHeight = window.innerHeight;
@@ -253,7 +272,7 @@ const adjustScreen = async (hideHeader, expandVideoPlayer) => {
                 const availableHeight = viewportHeight - offsetTop;
                 videoPlayer.style.height = `${availableHeight}px`;
             };
-    
+
             if (checked) {
                 // Store the function reference to remove it later
                 window.__adjustVideoPlayerHeight = adjustHeight;

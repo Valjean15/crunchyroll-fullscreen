@@ -1,7 +1,7 @@
 {
     "name": "Crunchyroll - Fullscreen",
     "description": "Crunchyroll video editor addons",
-    "version": "0.1",
+    "version": "0.2",
     "manifest_version": 3,
     "icons": {
         "128": "icon.png"

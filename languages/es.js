@@ -18,5 +18,6 @@ export const translation =
     "LNG_PREF_LANGUAGE_EN": "Inglés",
     "LNG_PREF_LANGUAGE_ES": "Español",
 
-    "LNG_CURRENT_VERSION": "build @ 2024.10.10"
+    "LNG_ENABLE_PIP_TITLE": "Habilitar PIP",
+    "LNG_ENABLE_PIP_DESC": "Permite el modo de imagen en imagen (PIP) para el reproductor de video. (actualmente no soporta los subtitulos, pero se planea agregar soporte en el futuro)"
 }
