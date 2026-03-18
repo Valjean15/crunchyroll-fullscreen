@@ -53,7 +53,7 @@ export const remote = {
         try {
             const
                 [tab] = await chrome.tabs.query({ active: true, currentWindow: true }),
-                { id, url } = tab;
+                { id, url } = (tab || {});
 
             logger.print('[execute] Tab detected', { id, url });
 
@@ -82,7 +82,7 @@ export const remote = {
         try {
             const
                 [tab] = await chrome.tabs.query({ active: true, currentWindow: true }),
-                { id, url } = tab;
+                { id, url } = (tab || {});
 
             if (!this.isAllowed(url)) {
                 logger.print('[executeIntoFrame] Invalid tab due to url');
@@ -151,7 +151,7 @@ export const actions = {
 
     [EXPAND_VIDEO_PLAYER]: (checked) => adjustScreen(STATE_CACHE.get()[HIDE_HEADER], checked),
 
-    [AUTO_SKIP_BUTTON]: (checked) => remote.executeIntoVideoPlayer([checked], checked => {
+    [AUTO_SKIP_BUTTON]: (checked) => remote.execute([checked], checked => {
 
         clearInterval(window.__auto_skip_button);
         window.__auto_skip_button = null;
@@ -186,7 +186,7 @@ export const actions = {
         return Promise.resolve();
     },
 
-    [ENABLE_PIP]: (checked) => remote.executeIntoVideoPlayer([checked], async checked => {
+    [ENABLE_PIP]: (checked) => remote.execute([checked], async checked => {
         const video = document.getElementsByTagName('video')[0];
         if (!video) return;
 
