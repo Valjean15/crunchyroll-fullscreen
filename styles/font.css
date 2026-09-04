@@ -1,60 +1,25 @@
-.lato-thin {
-    font-family: "Lato", sans-serif;
-    font-weight: 100;
+/* Lato - self-hosted (latin) to avoid a network round-trip on every popup open. */
+
+@font-face {
+    font-family: 'Lato';
     font-style: normal;
-  }
-  
-  .lato-light {
-    font-family: "Lato", sans-serif;
-    font-weight: 300;
-    font-style: normal;
-  }
-  
-  .lato-regular {
-    font-family: "Lato", sans-serif;
     font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/lato-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Lato';
     font-style: normal;
-  }
-  
-  .lato-bold {
-    font-family: "Lato", sans-serif;
     font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/lato-latin-700-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Lato';
     font-style: normal;
-  }
-  
-  .lato-black {
-    font-family: "Lato", sans-serif;
     font-weight: 900;
-    font-style: normal;
-  }
-  
-  .lato-thin-italic {
-    font-family: "Lato", sans-serif;
-    font-weight: 100;
-    font-style: italic;
-  }
-  
-  .lato-light-italic {
-    font-family: "Lato", sans-serif;
-    font-weight: 300;
-    font-style: italic;
-  }
-  
-  .lato-regular-italic {
-    font-family: "Lato", sans-serif;
-    font-weight: 400;
-    font-style: italic;
-  }
-  
-  .lato-bold-italic {
-    font-family: "Lato", sans-serif;
-    font-weight: 700;
-    font-style: italic;
-  }
-  
-  .lato-black-italic {
-    font-family: "Lato", sans-serif;
-    font-weight: 900;
-    font-style: italic;
-  }
-  
+    font-display: swap;
+    src: url('/fonts/lato-latin-900-normal.woff2') format('woff2');
+}

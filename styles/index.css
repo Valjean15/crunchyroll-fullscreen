@@ -1,231 +1,482 @@
+/* ==========================================================================
+   Crunchyroll - Fullscreen
+   Popup styles, aligned with the Crunchyroll design language.
+   Vanilla CSS only: no framework, no runtime, no remote assets.
+   ========================================================================== */
+
 :root {
-    /* Colors */
-    --background:       #23252b;
-    --text:             #fff;
-    --text-secondary:   #949e95;
-    --primary:          #ff640a;
-    --secondary:        #4a4e58;
-    --color-focus:      #141519;
-    --color-active:     #2abdbb;
-    --color-inactive:   #192e38;
 
-    /* Fonts */
-    --font-size-1:          1.5rem;
-    --font-size-2:          1.25rem;
-    --font-size-3:          1rem;
-    --font-size-4:          .875rem;
-    --font-size-5:          .75rem;
-    --font-size-6:          .60rem;
+    /* Surfaces */
+    --surface:          #23252b;
+    --surface-sunken:   #1b1d22;
+    --divider:          #383a40;
 
-    /* Animmations */
-    --transition-duration-timing-to:            150ms       ease-out;
-    --transition-duration-timing-from:          150ms       ease-in;
-    --transition-duration-timing-delay-from:    0s 150ms    ease-in;
+    /* Text */
+    --text:             #ffffff;
+    --text-muted:       #a0a0a0;
+    --text-dim:         #6c6f78;
+
+    /* Brand - reserved for identity and links */
+    --primary:          #f47521;
+    --primary-hover:    #ff8c3f;
+
+    /* Active - Crunchyroll's colour for a live form control */
+    --active:           #2abdbb;
+    --active-hover:     #4fd4d2;
+
+    /* Controls */
+    --control-border:   #6c6f78;
+    --control-knob:     #a0a0a0;
+
+    /* Type scale */
+    --font-size-1:      1.25rem;      /* 20px - popup title            */
+    --font-size-2:      1rem;         /* 16px - select value           */
+    --font-size-3:      .9375rem;     /* 15px - option title           */
+    --font-size-4:      .8125rem;     /* 13px - subtitle               */
+    --font-size-5:      .75rem;       /* 12px - description            */
+    --font-size-6:      .6875rem;     /* 11px - section label, footer  */
+
+    /* Motion */
+    --transition-duration-timing-to:     150ms ease-out;
+    --transition-duration-timing-from:   150ms ease-in;
+
+    /* Icons (inline, so nothing is fetched at runtime) */
+    --icon-close:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2323252b' d='M18.3 5.71 12 12.01l-6.3-6.3-1.41 1.41 6.3 6.3-6.3 6.3 1.41 1.41 6.3-6.3 6.3 6.3 1.41-1.41-6.3-6.3 6.3-6.3z'/%3E%3C/svg%3E");
+    --icon-check:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232abdbb' d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+    --icon-caret:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 7'%3E%3Cpath fill='%23000' d='M0 0h14L7 7z'/%3E%3C/svg%3E");
+
+    color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    background-color: var(--surface);
 }
 
 body {
-    background-color: var(--background);
-    min-width: 20rem;
-    font-family: "Lato", sans-serif;
-    font-size: var(--font-size-2);
-    margin: 2rem;
+    width: 24rem;
+    margin: 0;
+    padding: 1rem 1.25rem .5rem;
+
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: 'Lato', 'Segoe UI', system-ui, sans-serif;
+    font-size: var(--font-size-3);
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
 
     display: flex;
     flex-direction: column;
 }
 
+/*#region Header */
+
+.app-header {
+    text-align: center;
+    padding-bottom: .625rem;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--divider);
+}
+
+.app-title {
+    margin: 0;
+    font-size: var(--font-size-1);
+    font-weight: 900;
+    letter-spacing: -.01em;
+    line-height: 1.2;
+}
+
+.app-title-accent {
+    color: var(--primary);
+}
+
+.app-subtitle {
+    margin: .25rem 0 0;
+    color: var(--text-muted);
+    font-size: var(--font-size-4);
+    font-weight: 400;
+}
+
+/*#endregion Header */
+
 /*#region Fieldset */
 
 fieldset {
     border: none;
-    padding: 0 0 2rem 0
+    margin: 0;
+    padding: 0 0 .5rem 0;
 }
 
 fieldset > legend {
-    color: var(--text);
-    padding: 0 0 1rem 0
+    padding: .625rem 0 .125rem 0;
+    color: var(--text-muted);
+    font-size: var(--font-size-6);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .09em;
 }
 
 /*#endregion Fieldset */
 
+/*#region Row (shared by toggle + select) */
+
+.toggle,
+.select {
+    padding: .75rem 0;
+    border-bottom: 1px solid var(--divider);
+    cursor: pointer;
+}
+
+fieldset > label:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/*#endregion Row */
+
 /*#region Toggle */
- 
+
 .toggle {
-    color: var(--text);
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    flex-wrap: wrap;
-    row-gap: 0.5em;
-    cursor: pointer;
-    border-radius: 8px;
-    padding: 0 0 0.5rem 0
-}
-
-.toggle-component {
-    --_switch-height: 12px;
-    --_switch-width: 24px;
-
-    position: relative;
-    margin-right: 0.5em;
-    height: var(--_switch-height);
-    width: var(--_switch-width);
-
-    /* Hide default HTML checkbox but preserve accessibility. */
-    & input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-}
-
-.toggle-switch {
-    --outline-width: 1px;
-
-    position: absolute;
-    inset: 0;
-
-    background-color: var(--color-inactive);
-    border-radius: 9999px;
-    outline: 1px solid var(--text-secondary);
-    cursor: pointer;
-    transition: background-color var(--transition-duration-timing-from);
-
-    /* Toggle point */
-
-    &::before {
-        --_ratio: 50%;
-        --_offset: 4px;
-
-        content: "";
-
-        position: absolute; 
-        top: 50%;
-        left: var(--_offset);
-        right: unset;
-        translate: 0 -50%;
-        outline: 1px solid var(--text-secondary);
-        background-color: var(--text-secondary);
-        height: var(--_ratio);
-        aspect-ratio: 1 / 1;
-        border-radius: 50%;
-        transition: translate var(--transition-duration-timing-from);
-    }
-
-    /* Checked */
-
-    .toggle-component input:checked + & {
-        outline: 1px solid var(--color-active);
-        filter: brightness(130%);
-        transition: background-color var(--transition-duration-timing-to);
-    }
-    .toggle-component input:checked + &::before {
-        left: 0;
-        translate: calc(calc(var(--_switch-width) - 100%) - var(--_offset)) -50%;
-        transition: translate var(--transition-duration-timing-to);
-        background-color: var(--color-active);
-        outline: 1px solid var(--color-active);
-    }
-
-    /* Hover */
-
-    .toggle-component input:hover + & {
-        outline: 1px solid var(--text);
-    }
-
-    .toggle-component input:hover + &::before {
-        outline: 1px solid var(--text);
-        background-color: var(--text);
-    }
+    column-gap: 1rem;
+    row-gap: .1875rem;
+    color: var(--text);
 }
 
 .toggle-text {
+    grid-area: 1 / 1;
     font-size: var(--font-size-3);
-    margin-right: 1em;
-
-    &:hover {
-        filter: brightness(130%);
-    }
+    font-weight: 700;
 }
 
 .toggle-description {
-    font-size: var(--font-size-4);
-    color: var(--text-secondary);
+    grid-area: 2 / 1 / 3 / 3;
+    color: var(--text-muted);
+    font-size: var(--font-size-5);
+    line-height: 1.4;
+}
+
+.toggle-component {
+    --_switch-width: 42px;
+    --_switch-height: 24px;
+    --_knob-size: 18px;
+    --_knob-gap: 2px;
+
+    /* Per-state control colours, overridden by the rules below. */
+    --_track-color: transparent;
+    --_track-border: var(--control-border);
+    --_knob-color: var(--control-knob);
+    --_knob-icon: var(--icon-close);
+
+    grid-area: 1 / 2;
+    position: relative;
+    height: var(--_switch-height);
+    width: var(--_switch-width);
+    flex: none;
+}
+
+/* Keep the native checkbox for semantics and keyboard focus, hide it visually. */
+.toggle-component input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.toggle-switch {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background-color: var(--_track-color);
+    box-shadow: inset 0 0 0 1px var(--_track-border);
+    cursor: pointer;
+    transition:
+        background-color var(--transition-duration-timing-from),
+        box-shadow var(--transition-duration-timing-from);
+}
+
+/* Knob + state glyph */
+.toggle-switch::before {
+    content: "";
+
+    position: absolute;
+    top: 50%;
+    left: var(--_knob-gap);
+    height: var(--_knob-size);
+    aspect-ratio: 1 / 1;
+    translate: 0 -50%;
+
+    border-radius: 50%;
+    background-color: var(--_knob-color);
+    background-image: var(--_knob-icon);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 11px 11px;
+
+    transition:
+        translate var(--transition-duration-timing-from),
+        background-color var(--transition-duration-timing-from);
+}
+
+/* Checked */
+.toggle-component input:checked + .toggle-switch {
+    --_track-color: var(--active);
+    --_track-border: var(--active);
+    --_knob-color: var(--text);
+    --_knob-icon: var(--icon-check);
+
+    transition:
+        background-color var(--transition-duration-timing-to),
+        box-shadow var(--transition-duration-timing-to);
+}
+
+.toggle-component input:checked + .toggle-switch::before {
+    translate: calc(var(--_switch-width) - var(--_knob-size) - (var(--_knob-gap) * 2)) -50%;
+    transition:
+        translate var(--transition-duration-timing-to),
+        background-color var(--transition-duration-timing-to);
+}
+
+/* Hover - the whole row is the hit area, so highlight from the row. */
+.toggle:hover .toggle-switch {
+    --_track-border: var(--text);
+    --_knob-color: var(--text);
+}
+
+.toggle:hover .toggle-component input:checked + .toggle-switch {
+    --_track-color: var(--active-hover);
+    --_track-border: var(--active-hover);
+}
+
+.toggle:hover .toggle-text {
+    color: var(--active);
+}
+
+/* Keyboard focus */
+.toggle-component input:focus-visible + .toggle-switch {
+    outline: 2px solid var(--active);
+    outline-offset: 3px;
 }
 
 /*#endregion Toggle */
 
-/*#region Selector */
+/*#region Select */
 
 .select {
-    position: relative;
-}
-  
-.select-input {
-    color: var(--text);
-    position: relative;
-    font-family: inherit;
-    background-color: transparent;
-    width: 100%;
-    padding: 1rem 0 0 0;
-    font-size: var(--font-size-3);
-    border-radius: 0;
-    border: none;
-    border-bottom: 1px solid var(--secondary);
-    cursor: pointer;
-
-    & option {
-        color: var(--text-secondary);
-        background-color: var(--background);
-    }
-
-    /* Hover */
-
-    &:hover {
-        color: var(--color-active)
-    }
-
-    /* Focus */
-
-    &:focus-within {
-        color: var(--color-active)
-    }
+    display: flex;
+    flex-direction: column;
+    gap: .125rem;
 }
 
 .select-text {
-    color: var(--text-secondary);
-    font-size: var(--font-size-5);
-    font-weight: normal;
-    position: absolute;
+    color: var(--text-muted);
+    font-size: var(--font-size-6);
+    font-weight: 400;
     pointer-events: none;
-    transition: var(--transition-duration-timing-from);
+}
+
+/* The field: value + caret over a rule, as in the Crunchyroll preference rows. */
+.select-component {
+    /* Resolved per state by the rules at the end of this region. */
+    --_field-color: var(--text);
+    --_field-line: var(--divider);
+
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding-bottom: .375rem;
+    border-bottom: 1px solid var(--_field-line);
+    transition: border-color var(--transition-duration-timing-from);
+}
+
+/* Caret: flat filled triangle, 14x7, matching the Crunchyroll control. */
+.select-component::after {
+    content: "";
+
+    flex: none;
+    width: 14px;
+    height: 7px;
+
+    background-color: var(--_field-color);
+    mask: var(--icon-caret) center / contain no-repeat;
+    -webkit-mask: var(--icon-caret) center / contain no-repeat;
+
+    pointer-events: none;
+    transition: background-color var(--transition-duration-timing-from);
+}
+
+.select-input {
+    appearance: none;
+    -webkit-appearance: none;
+
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    color: var(--_field-color);
+    font-family: inherit;
+    font-size: var(--font-size-2);
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+    transition: color var(--transition-duration-timing-from);
+}
+
+/* Fallback picker (Chrome < 135): only the option colours are ours to set. */
+.select-input option {
+    background-color: var(--surface);
+    color: var(--text);
+    font-weight: 400;
 }
 
 .select-description {
-    font-size: var(--font-size-4);
-    color: var(--text-secondary);
+    margin-top: .25rem;
+    color: var(--text-muted);
+    font-size: var(--font-size-5);
+    line-height: 1.45;
 }
 
-/* Remove default arrow */
-.select .select-input {
-	appearance: none;
-	-webkit-appearance:none
+/* Live states - hover, keyboard focus and open all read as "active". */
+.select:hover .select-component,
+.select-component:has(.select-input:focus-visible),
+.select-component:has(.select-input:open) {
+    --_field-color: var(--active);
+    --_field-line: var(--active);
 }
 
-/* Remove focus */
 .select-input:focus {
     outline: none;
 }
-  
-/*#endregion Selector */
+
+.select-input:focus-visible {
+    outline: 2px solid var(--active);
+    outline-offset: 4px;
+    border-radius: 2px;
+}
+
+/* Styled picker panel (Chrome 135+). Falls back silently everywhere else. */
+@supports (appearance: base-select) {
+
+    .select-input,
+    .select-input::picker(select) {
+        appearance: base-select;
+    }
+
+    /* base-select resets the control to a bare button; restore the field. */
+    .select-input {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0;
+        border: none;
+        background: none;
+    }
+
+    /* We draw our own caret as a sibling, so drop the built-in one. */
+    .select-input::picker-icon {
+        display: none;
+    }
+
+    .select-input::picker(select) {
+        /* Span the whole field, caret included, not just the value box. */
+        min-width: calc(anchor-size(width) + .5rem + 14px);
+        margin-top: .375rem;
+        padding: .25rem 0;
+
+        background-color: var(--surface);
+        border: 1px solid var(--divider);
+        border-radius: 4px;
+        box-shadow: 0 .5rem 1.5rem rgb(0 0 0 / .45);
+
+        opacity: 0;
+        transition:
+            opacity var(--transition-duration-timing-from),
+            display allow-discrete,
+            overlay allow-discrete;
+    }
+
+    .select-input::picker(select):popover-open {
+        opacity: 1;
+        transition:
+            opacity var(--transition-duration-timing-to),
+            display allow-discrete,
+            overlay allow-discrete;
+    }
+
+    @starting-style {
+        .select-input::picker(select):popover-open {
+            opacity: 0;
+        }
+    }
+
+    .select-input option {
+        padding: .4375rem .75rem;
+        background-color: transparent;
+        color: var(--text-muted);
+        font-size: var(--font-size-3);
+        font-weight: 400;
+        line-height: 1.4;
+        cursor: pointer;
+    }
+
+    /* Crunchyroll marks the current option by weight and colour, not a tick. */
+    .select-input option::checkmark {
+        display: none;
+    }
+
+    .select-input option:checked {
+        color: var(--text);
+    }
+
+    .select-input option:hover,
+    .select-input option:focus {
+        background-color: rgb(255 255 255 / .07);
+        color: var(--text);
+        outline: none;
+    }
+}
+
+/*#endregion Select */
 
 /*#region About */
 
 span.about-section {
-
     display: flex;
     justify-content: flex-end;
-    color: var(--text-secondary);
+    color: var(--text-dim);
     font-size: var(--font-size-6);
 }
 
 /*#endregion About */
+
+/*#region Scrollbar */
+
+body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--control-border) transparent;
+}
+
+/*#endregion Scrollbar */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 1ms !important;
+    }
+}

@@ -1,5 +1,7 @@
 export const translation =
 {
+    "LNG_APP_SUBTITLE": "Ajusta cómo se ve Crunchyroll mientras miras",
+
     "LNG_OPTIONS": "Opciones",
     "LNG_PREFERENCES": "Preferencias",
 

@@ -1,22 +1,24 @@
 <html lang="en">
 
 <head>
+  <meta charset="utf-8">
   <title>Crunchyroll - Fullscreen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <!-- Font (self-hosted, no remote request) -->
+  <link rel="stylesheet" href="/styles/font.css" type="text/css">
+
   <!-- General styles -->
   <link rel="stylesheet" href="/styles/index.css" type="text/css">
-
-  <!-- Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="/styles/font.css" type="text/css">
 </head>
 
 <body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <h1 class="app-title">Crunchyroll <span class="app-title-accent">Fullscreen</span></h1>
+    <p class="app-subtitle">LNG_APP_SUBTITLE</p>
+  </header>
 
   <fieldset>
 
@@ -79,7 +81,7 @@
 
     </label>
 
-    <!-- Toggle - Auto skip intro/credits [enable-pip] -->
+    <!-- Toggle - Picture in picture [enable-pip] -->
     <label for="enable-pip" title="LNG_ENABLE_PIP_TITLE" class="toggle">
 
       <div class="toggle-component">
@@ -125,9 +127,9 @@
 
   </fieldset>
 
-  <!-- About -->
-  <span class="about-section">
-    build @ 2026.03.18
+  <!-- About - filled from the manifest at runtime -->
+  <span id="about-section" class="about-section">
+    v0.3
   </span>
 
 </body>

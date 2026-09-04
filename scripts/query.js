@@ -78,5 +78,15 @@ export const search = {
 
         logger.print('[getElementWithTranslations] Elements stored into cache', this.cache.translate);
         return this.cache.translate;
+    },
+
+    /**
+     * Gets the element that reports which build is installed.
+     *
+     * @returns {HTMLElement|null} The about element, or null when absent.
+     */
+    getAboutSection() {
+        logger.print('[getAboutSection] Getting the about element');
+        return document.getElementById('about-section');
     }
 }

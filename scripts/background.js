@@ -1,15 +1,30 @@
-import { BOOLEAN_VALUES, remote, storage, actions } from "./services.js";
+import { remote, storage, session } from "./services.js";
 
-// Apply changes when page was loaded
-chrome.tabs.onUpdated.addListener(async function (_, changeInfo, tab) {
-    const
-        { active, url } = tab,
-        { status } = changeInfo;
+/**
+ * Re-applies the stored options to a Crunchyroll tab.
+ *
+ * The tab id comes from the event rather than from a query for the active
+ * tab, so a page that loads in the background, or while another window has
+ * focus, is still handled.
+ *
+ * @param {number} tabId Tab that finished loading or navigating.
+ * @param {string} [url] Url of that tab, when the caller already has it.
+ * @returns {Promise<void>} Resolves once the options have been applied.
+ */
+const restore = async (tabId, url) => {
 
-    if (status == 'complete' && active && remote.isAllowed(url)) {
-        const state = await storage.loadChanges();
+    if (!remote.isAllowed(url)) return;
 
-        // Meanwhile, only boolean values are avaible to action in background
-        BOOLEAN_VALUES.forEach(key => actions[key](state[key]));
-    }
-})
+    const state = await storage.loadChanges();
+    await session.applyAll(state, tabId);
+};
+
+// Full document loads, including reloads.
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === 'complete') restore(tabId, tab?.url);
+});
+
+// Episode changes, which Crunchyroll routes without reloading the document.
+chrome.webNavigation.onHistoryStateUpdated.addListener(({ tabId, frameId, url }) => {
+    if (frameId === 0) restore(tabId, url);
+});

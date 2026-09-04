@@ -1,7 +1,8 @@
 {
     "name": "Crunchyroll - Fullscreen",
     "description": "Crunchyroll video editor addons",
-    "version": "0.2",
+    "version": "0.3",
+    "version_name": "0.3 (2026.09.04)",
     "manifest_version": 3,
     "icons": {
         "128": "icon.png"
@@ -20,7 +21,7 @@
         "webNavigation"
     ],
     "host_permissions": [
-        "https://www.crunchyroll.com/",
-        "https://static.crunchyroll.com/"
+        "https://www.crunchyroll.com/*",
+        "https://static.crunchyroll.com/*"
     ]
 }

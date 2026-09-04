@@ -46,36 +46,54 @@ const STATE_CACHE = {
 // #endregion
 
 export const remote = {
-    isAllowed(url) {
-        return url && url.includes(ALLOWED_SITE);
-    },
-    async execute(args, action) {
-        try {
-            const
-                [tab] = await chrome.tabs.query({ active: true, currentWindow: true }),
-                { id, url } = (tab || {});
 
+    /**
+     * Checks whether a url belongs to the site this extension supports.
+     *
+     * @param {string} [url] Url to test.
+     * @returns {boolean} True when the url is a Crunchyroll page.
+     */
+    isAllowed(url) {
+        return !!url && url.includes(ALLOWED_SITE);
+    },
+
+    /**
+     * Runs a function inside a Crunchyroll tab.
+     *
+     * The injection is awaited so that a failure is reported to the caller.
+     * Earlier versions fired it and returned success immediately, which hid
+     * every permission and targeting error behind a resolved promise.
+     *
+     * @param {Array} args Arguments forwarded to the injected function.
+     * @param {Function} action Function serialised and executed in the page.
+     * @param {number} [tabId] Tab to target, defaulting to the active tab.
+     * @returns {Promise<void>} Resolves once the script has run.
+     */
+    async execute(args, action, tabId) {
+        try {
+            const tab = tabId === undefined
+                ? (await chrome.tabs.query({ active: true, currentWindow: true }))[0]
+                : await chrome.tabs.get(tabId);
+
+            const { id, url } = (tab || {});
             logger.print('[execute] Tab detected', { id, url });
 
             if (!this.isAllowed(url)) {
-                logger.print('[execute] Invalid tab due to url');
+                logger.print('[execute] Invalid tab due to url', { id, url });
                 return Promise.reject('Page not allowed for this extension');
             }
 
-            logger.print('[execute] Executing remote script on tab');
-
-            chrome.scripting.executeScript({
+            await chrome.scripting.executeScript({
                 target: { tabId: id },
                 func: action,
                 args: args
             });
 
-            logger.print('[execute] Success on executing remote script on tab');
-            return Promise.resolve();
+            logger.print('[execute] Success on executing remote script on tab', { id });
 
         } catch (ex) {
             logger.print('[execute] Failure on executing remote script on tab', ex);
-            return Promise.reject('Page not allowed for this extension');
+            return Promise.reject(ex?.message || 'Page not allowed for this extension');
         }
     },
     async executeIntoVideoPlayer(args, action) {
@@ -144,31 +162,21 @@ export const storage = {
     }
 }
 
+/**
+ * Handlers for controls changed in the popup.
+ *
+ * Each key matches the name of a control in the popup document.
+ */
 export const actions = {
 
-    // Toggles 
+    // Toggles
     [HIDE_HEADER]: (checked) => adjustScreen(checked, STATE_CACHE.get()[EXPAND_VIDEO_PLAYER]),
 
     [EXPAND_VIDEO_PLAYER]: (checked) => adjustScreen(STATE_CACHE.get()[HIDE_HEADER], checked),
 
-    [AUTO_SKIP_BUTTON]: (checked) => remote.execute([checked], checked => {
+    [AUTO_SKIP_BUTTON]: (checked) => applyAutoSkip(checked),
 
-        clearInterval(window.__auto_skip_button);
-        window.__auto_skip_button = null;
-
-        if (checked)
-            window.__auto_skip_button = setInterval(async () => {
-
-                const skip = document.querySelector("[data-testid='skipIntroText']");
-                if (skip && skip.click) {
-                    skip.click();
-
-                    // Wait at least a second before try again
-                    await (() => new Promise(r => setTimeout(r, 1000)))();
-                }
-
-            }, 1000);
-    }),
+    [ENABLE_PIP]: (checked) => applyPictureInPicture(checked, true),
 
     // Selectors
     [PREFERENCE_LANGUAGE]: async (value) => {
@@ -184,25 +192,33 @@ export const actions = {
         translation.apply(search.getElementWithTranslations(), translations);
 
         return Promise.resolve();
-    },
+    }
+}
 
-    [ENABLE_PIP]: (checked) => remote.execute([checked], async checked => {
-        const video = document.getElementsByTagName('video')[0];
-        if (!video) return;
+/**
+ * Re-applies stored options to a tab, outside of any popup interaction.
+ */
+export const session = {
 
-        try {
-            video.disablePictureInPicture = !checked;
+    /**
+     * Applies every stored option to one tab.
+     *
+     * Picture-in-picture is only unblocked here and never opened, because a
+     * page load carries no user activation and the request would throw.
+     *
+     * @param {Object} state Stored option values.
+     * @param {number} tabId Tab to apply the options to.
+     * @returns {Promise<PromiseSettledResult[]>} Settles once all have run.
+     */
+    applyAll(state, tabId) {
+        logger.print('[applyAll] Applying stored options', { tabId, state });
 
-            if (checked) {
-                await video.requestPictureInPicture();
-            } else {
-                await document.exitPictureInPicture();
-            }
-        }
-        catch (error) {
-            console.warn('[ENABLE_PIP] Error occurred while toggling Picture-in-Picture mode', error);
-        }
-    })
+        return Promise.allSettled([
+            adjustScreen(state[HIDE_HEADER], state[EXPAND_VIDEO_PLAYER], tabId),
+            applyAutoSkip(state[AUTO_SKIP_BUTTON], tabId),
+            applyPictureInPicture(state[ENABLE_PIP], false, tabId)
+        ]);
+    }
 }
 
 export const translation = {
@@ -245,57 +261,240 @@ export const translation = {
 
 // #region Private Methods
 
-const adjustScreen = async (hideHeader, expandVideoPlayer) => {
+// Both screen tweaks are injected as one script. Crunchyroll is a single page
+// app: the header and the player mount after the page reports 'complete', and
+// they are swapped out again when moving between episodes. Reading the DOM once
+// therefore misses them, which is why a freshly loaded page used to ignore the
+// saved state until the toggle was flipped by hand. A single rAF-debounced
+// observer keeps both in sync, and every run disposes the previous one so
+// nothing accumulates across re-injections.
+/**
+ * Applies the header and video player tweaks to a Crunchyroll tab.
+ *
+ * Both live in one injected script because they share a single observer.
+ * Crunchyroll mounts its header and player after the document reports
+ * 'complete' and swaps them out again between episodes, so reading the DOM
+ * once misses them. Every run disposes the previous one, so repeated
+ * injections never stack observers or listeners.
+ *
+ * @param {boolean} hideHeader Whether the site header should be hidden.
+ * @param {boolean} expandVideoPlayer Whether the player should fill the screen.
+ * @param {number} [tabId] Tab to target, defaulting to the active tab.
+ * @returns {Promise<void>} Resolves once the script has run.
+ */
+const adjustScreen = (hideHeader, expandVideoPlayer, tabId) =>
 
-    // Hide/Show header if checked
-    const hideHeaderPromise = remote.execute([hideHeader], checked => {
+    remote.execute([hideHeader, expandVideoPlayer], (hideHeader, expandVideoPlayer) => {
 
-        const { style } = document.getElementsByClassName('erc-large-header')[0].parentElement;
+        const
+            HEADER = 'erc-large-header',
+            PLAYER = 'video-player-wrapper';
 
-        if (checked && style.display !== 'none')
-            style.display = 'none';
+        if (window.__crFullscreen)
+            window.__crFullscreen.dispose();
 
-        if (!checked && style.display !== '')
-            style.display = '';
-    })
-
-    // Adjust the video player, if the current value is checked
-    const expandVideoPlayerPromise = remote.execute([expandVideoPlayer], checked => {
-
-        const videoPlayer = document.getElementsByClassName('video-player-wrapper')[0];
-        if (videoPlayer) {
-
-            // Function to adjust the video player's height dynamically
-            const adjustHeight = () => {
-                const viewportHeight = window.innerHeight;
-                const offsetTop = videoPlayer.getBoundingClientRect().top;
-                const availableHeight = viewportHeight - offsetTop;
-                videoPlayer.style.height = `${availableHeight}px`;
-            };
-
-            if (checked) {
-                // Store the function reference to remove it later
-                window.__adjustVideoPlayerHeight = adjustHeight;
-                // Add event listener to adjust height on window resize
-                window.addEventListener('resize', window.__adjustVideoPlayerHeight);
-                // Initial adjustment
-                window.__adjustVideoPlayerHeight();
-            } else {
-                // Remove the event listener when unchecked
-                if (window.__adjustVideoPlayerHeight) {
-                    window.removeEventListener('resize', window.__adjustVideoPlayerHeight);
-                    delete window.__adjustVideoPlayerHeight;
-                }
-                // Reset the height
-                videoPlayer.style.height = '';
-            }
+        // Retire the resize listener left behind by earlier versions, for
+        // tabs that were already open when the extension was updated.
+        if (window.__adjustVideoPlayerHeight) {
+            window.removeEventListener('resize', window.__adjustVideoPlayerHeight);
+            delete window.__adjustVideoPlayerHeight;
         }
-    })
 
-    const noError = (await Promise.allSettled([hideHeaderPromise, expandVideoPlayerPromise]))
-        .every(result => result.status === 'fulfilled');
+        const
+            headerOf = () => document.getElementsByClassName(HEADER)[0]?.parentElement,
+            playerOf = () => document.getElementsByClassName(PLAYER)[0];
 
-    return noError ? Promise.resolve() : Promise.reject();
-}
+        let sized = null, sizedValue = '', observer = null;
+
+        /**
+         * Shows or hides the header.
+         *
+         * @returns {boolean} True when the visibility changed, which moves the
+         *                    player and therefore invalidates its height.
+         */
+        const applyHeader = () => {
+            const element = headerOf();
+            if (!element) return false;
+
+            const wanted = hideHeader ? 'none' : '';
+            if (element.style.display === wanted) return false;
+
+            element.style.display = wanted;
+            return true;
+        };
+
+        /**
+         * Sizes the player to the space left below it, or restores it.
+         *
+         * @param {boolean} force Recompute even if this element looks current.
+         */
+        const applyPlayer = (force) => {
+            const element = playerOf();
+
+            if (!element) {
+                sized = null;
+                return;
+            }
+
+            if (!expandVideoPlayer) {
+                if (element.style.height) element.style.height = '';
+                sized = null;
+                return;
+            }
+
+            if (!force && sized === element && element.style.height === sizedValue)
+                return;
+
+            const available = window.innerHeight - element.getBoundingClientRect().top;
+            element.style.height = `${available}px`;
+
+            // Watch this one element's style attribute, so the height comes
+            // back if the site re-renders over it.
+            if (sized !== element && observer)
+                observer.observe(element, { attributes: true, attributeFilter: ['style'] });
+
+            sized = element;
+            sizedValue = element.style.height;
+        };
+
+        const apply = (force) => applyPlayer(applyHeader() || force);
+
+        if (!hideHeader && !expandVideoPlayer) {
+            apply(true);
+            return;
+        }
+
+        let queued = false, forceNext = false;
+
+        /**
+         * Coalesces work into one pass per animation frame.
+         *
+         * @param {boolean} force Whether the pass must recompute the height.
+         */
+        const schedule = (force) => {
+            if (force) forceNext = true;
+            if (queued) return;
+
+            queued = true;
+            requestAnimationFrame(() => {
+                queued = false;
+
+                const force = forceNext;
+                forceNext = false;
+                apply(force);
+            });
+        };
+
+        const
+            onMutation = () => schedule(false),
+            onResize = () => schedule(true);
+
+        observer = new MutationObserver(onMutation);
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+        window.addEventListener('resize', onResize);
+
+        window.__crFullscreen = {
+            dispose() {
+                observer.disconnect();
+                window.removeEventListener('resize', onResize);
+                delete window.__crFullscreen;
+            }
+        };
+
+        apply(true);
+    }, tabId);
+
+/**
+ * Starts or stops clicking Crunchyroll's skip intro/credits button.
+ *
+ * @param {boolean} enabled Whether the button should be clicked automatically.
+ * @param {number} [tabId] Tab to target, defaulting to the active tab.
+ * @returns {Promise<void>} Resolves once the script has run.
+ */
+const applyAutoSkip = (enabled, tabId) =>
+
+    remote.execute([enabled], (enabled) => {
+
+        clearInterval(window.__auto_skip_button);
+        window.__auto_skip_button = null;
+
+        if (!enabled) return;
+
+        window.__auto_skip_button = setInterval(async () => {
+
+            const skip = document.querySelector("[data-testid='player-controls-root'] > button");
+            if (skip && skip.click) {
+                skip.click();
+
+                // Wait at least a second before trying again.
+                await (() => new Promise(r => setTimeout(r, 1000)))();
+            }
+
+        }, 1000);
+    }, tabId);
+
+/**
+ * Unblocks or re-blocks picture-in-picture for the page's video element.
+ *
+ * Crunchyroll sets disablePictureInPicture on its player. Clearing that flag
+ * is the only part of this that works without user activation, so opening the
+ * window is attempted only when the popup asks for it; a page load carries no
+ * activation and would just throw. The video mounts after load and is replaced
+ * between episodes, so the flag is re-applied to whichever video is current.
+ *
+ * @param {boolean} allowed Whether picture-in-picture should be available.
+ * @param {boolean} enter Whether to also open the window straight away.
+ * @param {number} [tabId] Tab to target, defaulting to the active tab.
+ * @returns {Promise<void>} Resolves once the script has run.
+ */
+const applyPictureInPicture = (allowed, enter, tabId) =>
+
+    remote.execute([allowed, enter], (allowed, enter) => {
+
+        if (window.__crPictureInPicture)
+            window.__crPictureInPicture.dispose();
+
+        const videoOf = () => document.getElementsByTagName('video')[0];
+        const video = videoOf();
+
+        if (video) video.disablePictureInPicture = !allowed;
+
+        // Leaving never needs a gesture, unlike entering.
+        if (!allowed && document.pictureInPictureElement)
+            document.exitPictureInPicture().catch(() => { });
+
+        if (!allowed) return;
+
+        if (enter && video)
+            video.requestPictureInPicture().catch(error =>
+                console.warn('[Crunchyroll - Fullscreen] Could not open picture-in-picture', error?.name));
+
+        let seen = video || null, queued = false;
+
+        const schedule = () => {
+            if (queued) return;
+
+            queued = true;
+            requestAnimationFrame(() => {
+                queued = false;
+
+                const current = videoOf();
+                if (!current || current === seen) return;
+
+                seen = current;
+                current.disablePictureInPicture = false;
+            });
+        };
+
+        const observer = new MutationObserver(schedule);
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+
+        window.__crPictureInPicture = {
+            dispose() {
+                observer.disconnect();
+                delete window.__crPictureInPicture;
+            }
+        };
+    }, tabId);
 
 // #endregion
